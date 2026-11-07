@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S. – Welcome Mr.Hesam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styl1.css">
+</head>
+<body class="booting">
+<div class="grid" aria-hidden="true"></div>
+<div class="sweep" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- پنل‌های گوشه -->
+<aside class="hud tl" aria-hidden="true">
+  <h4>CORE STATUS</h4>
+  <p>ARC OUTPUT <b id="v-arc">3.00</b> GJ</p>
+  <p>CPU LOAD <b id="v-cpu">12</b>%</p>
+  <p>MEMORY <b id="v-mem">41</b>%</p>
+</aside>
+<aside class="hud tr" aria-hidden="true">
+  <h4>SECURITY</h4>
+  <p>FIREWALL <b class="ok">ACTIVE</b></p>
+  <p>ENCRYPTION <b>AES-256</b></p>
+  <p>UPLINK <b id="v-net">---</b> MB/S</p>
+</aside>
+<aside class="hud bl" aria-hidden="true">
+  <h4>DATABASE NODE</h4>
+  <p>ENGINE <b>SQL SERVER</b></p>
+  <p>MODULES <b>06 / 06</b></p>
+  <p>LATENCY <b id="v-lat">0.8</b> MS</p>
+</aside>
+<aside class="hud br" aria-hidden="true">
+  <h4>LOCAL TIME</h4>
+  <p class="clock" id="v-clock">00:00:00</p>
+  <p>SYS <b class="ok">NOMINAL</b></p>
+</aside>
+
+<main class="stage">
+  <div class="reactor" aria-hidden="true">
+    <i class="ring r1"></i><i class="ring r2"></i><i class="ring r3"></i><i class="ring r4"></i>
+    <i class="tri"></i><i class="core"></i>
+  </div>
+
+  <h1 class="welcome" data-text="WELCOME MR.HESAM">WELCOME MR.HESAM</h1>
+  <p class="sub">ALL SYSTEMS ARE ONLINE. YOUR SQL LAB IS READY.</p>
+
+  <div class="log" id="log" aria-live="polite"></div>
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="fill"></span><em id="pct">0%</em></div>
+
+  <a class="enter" id="enter" href="labs.html" aria-disabled="true">
+    <span>ENTER SYSTEM</span>
+  </a>
+  <p class="hint">PRESS ENTER OR CLICK TO CONTINUE</p>
+</main>
+
+<div class="flash" id="flash" aria-hidden="true"><b>ACCESS GRANTED</b></div>
+
+<script>
+(function(){
+  var calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var log=document.getElementById('log'),fill=document.getElementById('fill'),pct=document.getElementById('pct'),
+      bar=document.querySelector('.bar'),enter=document.getElementById('enter'),flash=document.getElementById('flash');
+  var steps=[
+    ['INITIALIZING J.A.R.V.I.S. CORE',0],
+    ['CALIBRATING ARC REACTOR',12],
+    ['LOADING SQL SERVER MODULES',30],
+    ['VERIFYING DATABASE SCHEMAS',52],
+    ['BIOMETRIC SCAN IN PROGRESS',74],
+    ['IDENTITY CONFIRMED: MR.HESAM',92],
+    ['ACCESS LEVEL: UNRESTRICTED',100]
+  ];
+  var ready=false,i=0;
+
+  function beep(f,d){
+    try{var a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();
+      o.type='sine';o.frequency.value=f;g.gain.value=.04;o.connect(g);g.connect(a.destination);o.start();
+      g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);o.stop(a.currentTime+d)}catch(e){}
+  }
+  function setPct(p){fill.style.width=p+'%';pct.textContent=p+'%';bar.setAttribute('aria-valuenow',p)}
+  function next(){
+    if(i>=steps.length){done();return}
+    var s=steps[i++],line=document.createElement('div');
+    line.innerHTML='<span class="t">&gt;</span> '+s[0]+' <span class="dots"></span>';
+    log.appendChild(line);while(log.children.length>5)log.removeChild(log.firstChild);
+    setPct(s[1]);
+    setTimeout(function(){line.classList.add('ok');line.querySelector('.dots').textContent='[ OK ]';next()},calm?120:520);
+  }
+  function done(){
+    ready=true;document.body.classList.remove('booting');document.body.classList.add('ready');
+    enter.setAttribute('aria-disabled','false');enter.focus({preventScroll:true});
+  }
+  function go(e){
+    if(e)e.preventDefault();
+    if(!ready||document.body.classList.contains('launch'))return;
+    document.body.classList.add('launch');beep(880,.25);setTimeout(function(){beep(1320,.35)},180);
+    setTimeout(function(){location.href="labs.html"},calm?200:1500);
+  }
+  enter.addEventListener('click',go);
+  document.addEventListener('keydown',function(e){if(e.key==='Enter')go(e)});
+
+  /* اعداد زنده */
+  function r(a,b,d){return(Math.random()*(b-a)+a).toFixed(d||0)}
+  function tick(){
+    document.getElementById('v-arc').textContent=r(2.9,3.1,2);
+    document.getElementById('v-cpu').textContent=r(8,34);
+    document.getElementById('v-mem').textContent=r(38,52);
+    document.getElementById('v-net').textContent=r(80,960);
+    document.getElementById('v-lat').textContent=r(.4,1.6,1);
+    var d=new Date(),p=function(n){return String(n).padStart(2,'0')};
+    document.getElementById('v-clock').textContent=p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+  }
+  tick();setInterval(tick,1000);
+  setTimeout(next,calm?0:700);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نکات و کدهای SQL Server – آزمایشگاه پایگاه داده</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+<div class="layout">
+<nav class="side" aria-label="فهرست کارهای عملی">
+  <p class="brand">SQL Server</p>
+  <p class="brand-sub">یادداشت‌های آزمایشگاه پایگاه داده</p>
+  <ol>
+    <li><a href="#lab1">۱. اطلاعات دانشجویان</a></li>
+    <li><a href="#lab2">۲. شماره تماس‌ها</a></li>
+    <li><a href="#lab3">۳. دانشگاه و دانشکده</a></li>
+    <li><a href="#lab4">۴. گروه‌های آموزشی</a></li>
+    <li><a href="#lab5">۵. رشته و دانشجو</a></li>
+    <li><a href="#lab6">۶. درس و انتخاب واحد</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="planet" aria-hidden="true"></div>
+  <h1>سفر از یک جدول ساده تا کهکشان پایگاه داده</h1>
+  <p>خلاصه نکات و کدهای شش کار عملی SQL Server. هر کد را می‌توانید با دکمه «کپی» برداشته و در SSMS اجرا کنید.</p>
+</header>
+
+<!-- ===================== کار عملی ۱ ===================== -->
+<section class="lab" id="lab1">
+<span class="tag">کار عملی ۱</span>
+<h2>طراحی پایگاه داده اطلاعات دانشجویان</h2>
+<p class="goal">آشنایی با طراحی یک پایگاه داده ساده برای ثبت، نگهداری، جستجو و ویرایش اطلاعات دانشجویان. فقط یک موجودیت (Student) داریم، پس رابطه‌ای تعریف نمی‌شود.</p>
+
+<div class="tbl"><table>
+<tr><th>صفت</th><th>فیلد</th><th>نوع داده</th></tr>
+<tr><td>شناسه دانشجو (کلید اصلی)</td><td class="en">StudentID</td><td class="en">INT</td></tr>
+<tr><td>شماره دانشجویی</td><td class="en">StudentNumber</td><td class="en">NVARCHAR(20)</td></tr>
+<tr><td>نام</td><td class="en">FirstName</td><td class="en">NVARCHAR(50)</td></tr>
+<tr><td>نام خانوادگی</td><td class="en">LastName</td><td class="en">NVARCHAR(50)</td></tr>
+<tr><td>تاریخ تولد</td><td class="en">BirthDate</td><td class="en">DATE</td></tr>
+<tr><td>نشانی</td><td class="en">Address</td><td class="en">NVARCHAR(200)</td></tr>
+<tr><td>شماره تماس</td><td class="en">Phone</td><td class="en">NVARCHAR(20)</td></tr>
+</table></div>
+
+<h3>ایجاد پایگاه داده و جدول</h3>
+<div class="code"><pre><code>CREATE DATABASE StudentsDB;
+GO
+USE StudentsDB;
+GO
+CREATE TABLE Students (
+  StudentID INT IDENTITY(1,1) PRIMARY KEY,
+  StudentNumber NVARCHAR(20) NOT NULL UNIQUE,
+  FirstName NVARCHAR(50) NOT NULL,
+  LastName NVARCHAR(50) NOT NULL,
+  BirthDate DATE NULL,
+  Address NVARCHAR(200) NULL,
+  Phone NVARCHAR(20) NULL
+);
+GO</code></pre></div>
+<ul class="notes">
+<li><code>CREATE DATABASE</code> پایگاه داده و <code>CREATE TABLE</code> جدول را می‌سازد.</li>
+<li><code>PRIMARY KEY</code> کلید اصلی است و برای هر رکورد یکتاست.</li>
+<li><code>IDENTITY(1,1)</code> شناسه را از ۱ شروع می‌کند و برای هر رکورد یک واحد زیاد می‌کند.</li>
+<li><code>NOT NULL</code> ورود مقدار را الزامی می‌کند و <code>UNIQUE</code> مانع تکراری شدن شماره دانشجویی می‌شود.</li>
+<li><code>NVARCHAR</code> برای متن فارسی مناسب است.</li>
+</ul>
+
+<h3>ثبت اطلاعات نمونه</h3>
+<div class="code"><pre><code>INSERT INTO Students
+  (StudentNumber, FirstName, LastName, BirthDate, Address, Phone)
+VALUES
+  (N'140501', N'علی',  N'احمدی', '2005-04-12', N'شهر نمونه، خیابان اول', N'09120000001'),
+  (N'140502', N'مریم', N'محمدی', '2004-08-20', N'شهر نمونه، خیابان دوم', N'09120000002'),
+  (N'140503', N'رضا',  N'کریمی', '2005-01-15', N'شهر نمونه، خیابان سوم', N'09120000003');
+GO</code></pre></div>
+
+<h3>پرس‌وجوهای عملی</h3>
+<h3>۱. نمایش تمام دانشجویان</h3>
+<div class="code"><pre><code>SELECT * FROM Students;</code></pre></div>
+<h3>۲. نمایش نام و نام خانوادگی</h3>
+<div class="code"><pre><code>SELECT FirstName, LastName FROM Students;</code></pre></div>
+<h3>۳. جستجو بر اساس بخشی از نشانی</h3>
+<div class="code"><pre><code>SELECT * FROM Students
+WHERE Address LIKE N'%دوم%';</code></pre></div>
+<h3>۴. جستجو بر اساس شماره دانشجویی</h3>
+<div class="code"><pre><code>SELECT * FROM Students
+WHERE StudentNumber = N'140501';</code></pre></div>
+<h3>۵. مرتب‌سازی بر اساس نام خانوادگی</h3>
+<div class="code"><pre><code>SELECT * FROM Students
+ORDER BY LastName ASC;</code></pre></div>
+<h3>۶. ویرایش شماره تماس</h3>
+<div class="code"><pre><code>UPDATE Students
+SET Phone = N'09129999999'
+WHERE StudentNumber = N'140501';</code></pre></div>
+<h3>۷. شمارش تعداد دانشجویان</h3>
+<div class="code"><pre><code>SELECT COUNT(*) AS StudentCount FROM Students;</code></pre></div>
+</section>
+
+<!-- ===================== کار عملی ۲ ===================== -->
+<section class="lab" id="lab2">
+<span class="tag">کار عملی ۲</span>
+<h2>مدیریت شماره تماس دانشجویان</h2>
+<p class="goal">هر دانشجو می‌تواند چند شماره تماس (همراه، منزل، اضطراری) داشته باشد؛ پس رابطه یک‌به‌چند (One-to-Many) بین Students و StudentPhones برقرار می‌شود.</p>
+<div class="rel">Students (1) ───────&lt; StudentPhones (N)</div>
+<p>شماره تلفن از نوع <code>NVARCHAR</code> تعریف می‌شود چون مقدار محاسباتی نیست و ممکن است با صفر شروع شود.</p>
+
+<h3>ایجاد پایگاه داده و جداول</h3>
+<div class="code"><pre><code>CREATE DATABASE StudentContactsDB;
+GO
+USE StudentContactsDB;
+GO
+CREATE TABLE Students
+(
+  StudentID INT IDENTITY(1,1) PRIMARY KEY,
+  StudentNumber NVARCHAR(20) NOT NULL UNIQUE,
+  FirstName NVARCHAR(50) NOT NULL,
+  LastName NVARCHAR(50) NOT NULL
+);
+GO
+CREATE TABLE StudentPhones
+(
+  PhoneID INT IDENTITY(1,1) PRIMARY KEY,
+  StudentID INT NOT NULL,
+  PhoneNumber NVARCHAR(20) NOT NULL,
+  PhoneType NVARCHAR(30) NOT NULL,
+  IsPrimary BIT NOT NULL DEFAULT 0,
+  CONSTRAINT FK_StudentPhones_Students
+    FOREIGN KEY (StudentID)
+    REFERENCES Students(StudentID)
+);
+GO</code></pre></div>
+<ul class="notes">
+<li><code>FOREIGN KEY</code> ارتباط دو جدول را برقرار می‌کند.</li>
+<li><code>DEFAULT 0</code> باعث می‌شود شماره جدید به‌طور پیش‌فرض «اصلی» حساب نشود.</li>
+<li><code>IsPrimary</code> از نوع BIT است: ۱ یعنی شماره اصلی، ۰ یعنی غیر اصلی.</li>
+</ul>
+
+<h3>ثبت اطلاعات نمونه</h3>
+<div class="code"><pre><code>INSERT INTO Students (StudentNumber, FirstName, LastName)
+VALUES
+  (N'140501', N'علی',  N'احمدی'),
+  (N'140502', N'مریم', N'محمدی'),
+  (N'140503', N'رضا',  N'کریمی');
+GO
+
+INSERT INTO StudentPhones (StudentID, PhoneNumber, PhoneType, IsPrimary)
+VALUES
+  (1, N'09120000001', N'همراه',   1),
+  (1, N'02100000001', N'منزل',    0),
+  (2, N'09120000002', N'همراه',   1),
+  (3, N'09120000003', N'همراه',   1),
+  (3, N'09120000004', N'اضطراری', 0);
+GO</code></pre></div>
+
+<h3>تمرین ۱: نمایش تمام دانشجویان</h3>
+<div class="code"><pre><code>SELECT * FROM Students;</code></pre></div>
+<h3>تمرین ۲: نمایش تمام شماره‌های تماس</h3>
+<div class="code"><pre><code>SELECT * FROM StudentPhones;</code></pre></div>
+<h3>تمرین ۳: نام دانشجو همراه با شماره تماس</h3>
+<p>با <code>INNER JOIN</code> دو جدول به هم وصل می‌شوند.</p>
+<div class="code"><pre><code>SELECT
+  Students.StudentNumber,
+  Students.FirstName,
+  Students.LastName,
+  StudentPhones.PhoneNumber,
+  StudentPhones.PhoneType
+FROM Students
+INNER JOIN StudentPhones
+  ON Students.StudentID = StudentPhones.StudentID;</code></pre></div>
+<h3>تمرین ۴: شماره‌های تماس یک دانشجو</h3>
+<div class="code"><pre><code>SELECT
+  Students.FirstName,
+  Students.LastName,
+  StudentPhones.PhoneNumber,
+  StudentPhones.PhoneType
+FROM Students
+INNER JOIN StudentPhones
+  ON Students.StudentID = StudentPhones.StudentID
+WHERE Students.StudentNumber = N'140501';</code></pre></div>
+<h3>تمرین ۵: شماره‌های اصلی دانشجویان</h3>
+<div class="code"><pre><code>SELECT
+  Students.FirstName,
+  Students.LastName,
+  StudentPhones.PhoneNumber
+FROM Students
+INNER JOIN StudentPhones
+  ON Students.StudentID = StudentPhones.StudentID
+WHERE StudentPhones.IsPrimary = 1;</code></pre></div>
+<h3>تمرین ۶: افزودن شماره تماس جدید</h3>
+<div class="code"><pre><code>INSERT INTO StudentPhones (StudentID, PhoneNumber, PhoneType, IsPrimary)
+VALUES (2, N'09120000005', N'اضطراری', 0);</code></pre></div>
+<h3>تمرین ۷: اصلاح شماره تماس</h3>
+<div class="code"><pre><code>UPDATE StudentPhones
+SET PhoneNumber = N'09121111111'
+WHERE PhoneID = 1;</code></pre></div>
+<p class="warn">پیش از اجرا، با <code>SELECT</code> شناسه موردنظر را بررسی کنید.</p>
+<h3>تمرین ۸: حذف یک شماره تماس</h3>
+<div class="code"><pre><code>DELETE FROM StudentPhones
+WHERE PhoneID = 5;</code></pre></div>
+<p>فقط شماره‌ای با شناسه ۵ حذف می‌شود، نه خود دانشجو.</p>
+<h3>تمرین ۹: شمارش شماره‌های تماس هر دانشجو</h3>
+<div class="code"><pre><code>SELECT
+  Students.StudentNumber,
+  Students.FirstName,
+  Students.LastName,
+  COUNT(StudentPhones.PhoneID) AS PhoneCount
+FROM Students
+LEFT JOIN StudentPhones
+  ON Students.StudentID = StudentPhones.StudentID
+GROUP BY
+  Students.StudentNumber,
+  Students.FirstName,
+  Students.LastName;</code></pre></div>
+<p><code>LEFT JOIN</code> باعث می‌شود دانشجویان بدون شماره هم نمایش داده شوند.</p>
+<h3>تمرین ۱۰: دانشجویان بدون شماره تماس</h3>
+<div class="code"><pre><code>SELECT
+  Students.StudentNumber,
+  Students.FirstName,
+  Students.LastName
+FROM Students
+LEFT JOIN StudentPhones
+  ON Students.StudentID = StudentPhones.StudentID
+WHERE StudentPhones.PhoneID IS NULL;</code></pre></div>
+</section>
+
+<!-- ===================== کار عملی ۳ ===================== -->
+<section class="lab" id="lab3">
+<span class="tag">کار عملی ۳</span>
+<h2>مدیریت دانشکده‌های دانشگاه</h2>
+<p class="goal">هر دانشگاه می‌تواند صفر، یک یا چند دانشکده داشته باشد، اما هر دانشکده فقط به یک دانشگاه تعلق دارد (رابطه یک‌به‌چند).</p>
+<div class="rel">Universities (1) ───────&lt; Faculties (N)</div>
+<div class="tbl"><table>
+<tr><th>Universities</th><th>Faculties</th></tr>
+<tr><td class="en">UniversityID (PK, IDENTITY)<br>UniversityName NVARCHAR(100)<br>City NVARCHAR(50)<br>EstablishmentYear INT</td>
+<td class="en">FacultyID (PK, IDENTITY)<br>FacultyName NVARCHAR(100)<br>DeanName NVARCHAR(100)<br>Building NVARCHAR(100)<br>UniversityID INT (FK)</td></tr>
+</table></div>
+
+<h3>ایجاد پایگاه داده و جداول</h3>
+<div class="code"><pre><code>CREATE DATABASE UniversityFacultiesDB;
+GO
+USE UniversityFacultiesDB;
+GO
+CREATE TABLE Universities
+(
+  UniversityID INT IDENTITY(1,1) PRIMARY KEY,
+  UniversityName NVARCHAR(100) NOT NULL,
+  City NVARCHAR(50) NOT NULL,
+  EstablishmentYear INT NULL
+);
+GO
+CREATE TABLE Faculties
+(
+  FacultyID INT IDENTITY(1,1) PRIMARY KEY,
+  FacultyName NVARCHAR(100) NOT NULL,
+  DeanName NVARCHAR(100) NULL,
+  Building NVARCHAR(100) NULL,
+  UniversityID INT NOT NULL,
+  CONSTRAINT FK_Faculties_Universities
+    FOREIGN KEY (UniversityID)
+    REFERENCES Universities(UniversityID)
+);
+GO</code></pre></div>
+<p class="warn">ابتدا Universities را بسازید و بعد Faculties را؛ چون جدول دوم به اولی وابسته است. در درج اطلاعات هم ترتیب همین است.</p>
+
+<h3>ثبت اطلاعات نمونه</h3>
+<div class="code"><pre><code>INSERT INTO Universities (UniversityName, City, EstablishmentYear)
+VALUES
+  (N'دانشگاه نمونه الف', N'شهر نمونه الف', 1370),
+  (N'دانشگاه نمونه ب',   N'شهر نمونه ب',   1380),
+  (N'دانشگاه نمونه ج',   N'شهر نمونه ج',   1390);
+GO
+
+INSERT INTO Faculties (FacultyName, DeanName, Building, UniversityID)
+VALUES
+  (N'دانشکده مهندسی',    N'علی احمدی',   N'ساختمان 1', 1),
+  (N'دانشکده علوم انسانی', N'مریم محمدی', N'ساختمان 2', 1),
+  (N'دانشکده علوم پایه', N'رضا کریمی',   N'ساختمان 3', 1),
+  (N'دانشکده مدیریت',    N'زهرا حسینی',  N'ساختمان 1', 2),
+  (N'دانشکده هنر',       N'حسین مرادی',  N'ساختمان 2', 3);
+GO</code></pre></div>
+
+<h3>تمرین ۱: نمایش دانشگاه‌ها</h3>
+<div class="code"><pre><code>SELECT * FROM Universities;</code></pre></div>
+<h3>تمرین ۲: دانشکده‌ها همراه با نام دانشگاه</h3>
+<div class="code"><pre><code>SELECT
+  F.FacultyName, F.DeanName, F.Building,
+  U.UniversityName, U.City
+FROM Faculties AS F
+INNER JOIN Universities AS U
+  ON F.UniversityID = U.UniversityID;</code></pre></div>
+<h3>تمرین ۳: دانشکده‌های یک دانشگاه مشخص</h3>
+<div class="code"><pre><code>SELECT FacultyName, DeanName, Building
+FROM Faculties
+WHERE UniversityID = 1;</code></pre></div>
+<h3>تمرین ۴: تعداد دانشکده‌های هر دانشگاه</h3>
+<div class="code"><pre><code>SELECT
+  U.UniversityName,
+  COUNT(F.FacultyID) AS FacultyCount
+FROM Universities AS U
+LEFT JOIN Faculties AS F
+  ON U.UniversityID = F.UniversityID
+GROUP BY U.UniversityID, U.UniversityName;</code></pre></div>
+<p><code>COUNT</code> می‌شمارد، <code>GROUP BY</code> دسته‌بندی می‌کند و <code>LEFT JOIN</code> دانشگاه‌های بدون دانشکده را با تعداد صفر نشان می‌دهد.</p>
+<h3>تمرین ۵: دانشگاه‌هایی با بیش از یک دانشکده</h3>
+<div class="code"><pre><code>SELECT
+  U.UniversityName,
+  COUNT(F.FacultyID) AS FacultyCount
+FROM Universities AS U
+INNER JOIN Faculties AS F
+  ON U.UniversityID = F.UniversityID
+GROUP BY U.UniversityID, U.UniversityName
+HAVING COUNT(F.FacultyID) &gt; 1;</code></pre></div>
+<p><code>WHERE</code> رکوردها را پیش از گروه‌بندی فیلتر می‌کند، اما <code>HAVING</code> روی گروه‌های ساخته‌شده شرط می‌گذارد.</p>
+<h3>تمرین ۶: ثبت دانشگاه جدید</h3>
+<div class="code"><pre><code>INSERT INTO Universities (UniversityName, City, EstablishmentYear)
+VALUES (N'دانشگاه نمونه د', N'شهر نمونه د', 1400);</code></pre></div>
+<h3>تمرین ۷: ثبت دانشکده برای دانشگاه موجود</h3>
+<div class="code"><pre><code>INSERT INTO Faculties (FacultyName, DeanName, Building, UniversityID)
+VALUES (N'دانشکده اقتصاد', N'محمد رضایی', N'ساختمان 4', 2);</code></pre></div>
+<p>اگر UniversityID در جدول Universities وجود نداشته باشد، کلید خارجی مانع درج می‌شود.</p>
+<h3>تمرین ۸: اصلاح اطلاعات یک دانشکده</h3>
+<div class="code"><pre><code>UPDATE Faculties
+SET DeanName = N'احمد رضایی'
+WHERE FacultyID = 2;</code></pre></div>
+<h3>تمرین ۹: حذف یک دانشکده</h3>
+<div class="code"><pre><code>DELETE FROM Faculties
+WHERE FacultyID = 5;</code></pre></div>
+<h3>تمرین ۱۰: دانشگاه‌های بدون دانشکده</h3>
+<div class="code"><pre><code>SELECT U.UniversityID, U.UniversityName
+FROM Universities AS U
+LEFT JOIN Faculties AS F
+  ON U.UniversityID = F.UniversityID
+WHERE F.FacultyID IS NULL;</code></pre></div>
+<h3>تمرین ۱۱: بررسی صحت ارتباط دانشگاه و دانشکده</h3>
+<div class="code"><pre><code>SELECT
+  F.FacultyID, F.FacultyName,
+  F.UniversityID, U.UniversityName
+FROM Faculties AS F
+INNER JOIN Universities AS U
+  ON F.UniversityID = U.UniversityID
+ORDER BY U.UniversityName, F.FacultyName;</code></pre></div>
+
+<h3>آزمایش رابطه یک‌به‌چند</h3>
+<div class="code"><pre><code>SELECT U.UniversityName, F.FacultyName
+FROM Universities AS U
+LEFT JOIN Faculties AS F
+  ON U.UniversityID = F.UniversityID
+ORDER BY U.UniversityName, F.FacultyName;</code></pre></div>
+
+<h3>نکات مهم اجرا</h3>
+<ul class="notes">
+<li>در <code>UPDATE</code> و <code>DELETE</code> حتماً از <code>WHERE</code> استفاده کنید؛ وگرنه همه رکوردها تغییر می‌کنند یا حذف می‌شوند.</li>
+<li>دستورهای ساخت پایگاه داده و جدول را دوباره اجرا نکنید (خطای تکراری بودن).</li>
+<li>با اجرای مجدد INSERT، شناسه‌های خودکار از ۱ شروع نمی‌شوند؛ قبل از استفاده از شناسه ثابت جدول را بررسی کنید.</li>
+<li>حذف دانشگاهی که هنوز دانشکده دارد، به‌خاطر کلید خارجی اجرا نمی‌شود.</li>
+</ul>
+</section>
+
+<!-- ===================== کار عملی ۴ ===================== -->
+<section class="lab" id="lab4">
+<span class="tag">کار عملی ۴</span>
+<h2>مدیریت گروه‌های آموزشی</h2>
+<p class="goal">هر دانشکده می‌تواند چند گروه آموزشی داشته باشد (مثلاً مهندسی کامپیوتر، برق و عمران در دانشکده مهندسی). این کار روی پایگاه داده UniversityFacultiesDB از کار عملی ۳ ساخته می‌شود و نیازی به ساخت دوباره Faculties نیست.</p>
+<div class="rel">Faculties (1) ───────&lt; Departments (N)</div>
+
+<h3>ایجاد جدول Departments</h3>
+<div class="code"><pre><code>USE UniversityFacultiesDB;
+GO
+CREATE TABLE Departments
+(
+  DepartmentID INT IDENTITY(1,1) PRIMARY KEY,
+  DepartmentName NVARCHAR(100) NOT NULL,
+  HeadName NVARCHAR(100) NULL,
+  OfficeLocation NVARCHAR(100) NULL,
+  FacultyID INT NOT NULL,
+  CONSTRAINT FK_Departments_Faculties
+    FOREIGN KEY (FacultyID)
+    REFERENCES Faculties(FacultyID)
+);
+GO</code></pre></div>
+<p><code>REFERENCES Faculties(FacultyID)</code> مشخص می‌کند شناسه دانشکده باید به رکوردی موجود اشاره کند.</p>
+
+<h3>ثبت اطلاعات نمونه</h3>
+<div class="code"><pre><code>INSERT INTO Departments
+  (DepartmentName, HeadName, OfficeLocation, FacultyID)
+VALUES
+  (N'مهندسی کامپیوتر',     N'علی رضایی',   N'ساختمان 1، طبقه اول',  1),
+  (N'مهندسی برق',          N'محمد احمدی',  N'ساختمان 1، طبقه دوم',  1),
+  (N'مهندسی عمران',        N'رضا کریمی',   N'ساختمان 1، طبقه سوم',  1),
+  (N'علوم اجتماعی',        N'مریم محمدی',  N'ساختمان 2، طبقه اول',  2),
+  (N'زبان و ادبیات فارسی', N'زهرا حسینی',  N'ساختمان 2، طبقه دوم',  2),
+  (N'ریاضی',               N'حسین مرادی',  N'ساختمان 3، طبقه اول',  3);
+GO</code></pre></div>
+<p class="warn">اگر شناسه دانشکده‌ها در پایگاه داده شما فرق دارد، ابتدا Faculties را بررسی و شناسه‌های معتبر را جایگزین کنید.</p>
+
+<h3>تمرین ۱: نمایش تمام گروه‌ها</h3>
+<div class="code"><pre><code>SELECT * FROM Departments;</code></pre></div>
+<h3>تمرین ۲: گروه‌ها همراه با نام دانشکده</h3>
+<div class="code"><pre><code>SELECT
+  D.DepartmentName, D.HeadName, D.OfficeLocation,
+  F.FacultyName
+FROM Departments AS D
+INNER JOIN Faculties AS F
+  ON D.FacultyID = F.FacultyID;</code></pre></div>
+<h3>تمرین ۳: گروه‌های یک دانشکده مشخص</h3>
+<div class="code"><pre><code>SELECT DepartmentName, HeadName, OfficeLocation
+FROM Departments
+WHERE FacultyID = 1;</code></pre></div>
+<h3>تمرین ۴: شمارش گروه‌های هر دانشکده</h3>
+<div class="code"><pre><code>SELECT
+  F.FacultyName,
+  COUNT(D.DepartmentID) AS DepartmentCount
+FROM Faculties AS F
+LEFT JOIN Departments AS D
+  ON F.FacultyID = D.FacultyID
+GROUP BY F.FacultyID, F.FacultyName;</code></pre></div>
+<h3>تمرین ۵: ثبت گروه آموزشی جدید</h3>
+<div class="code"><pre><code>INSERT INTO Departments
+  (DepartmentName, HeadName, OfficeLocation, FacultyID)
+VALUES
+  (N'مهندسی صنایع', N'مهدی احمدی', N'ساختمان 1، طبقه چهارم', 1);</code></pre></div>
+<h3>تمرین ۶: اصلاح نام مدیر گروه</h3>
+<div class="code"><pre><code>UPDATE Departments
+SET HeadName = N'احمد رضایی'
+WHERE DepartmentID = 2;</code></pre></div>
+<h3>تمرین ۷: حذف یک گروه آموزشی</h3>
+<div class="code"><pre><code>DELETE FROM Departments
+WHERE DepartmentID = 6;</code></pre></div>
+<h3>تمرین ۸: دانشکده‌های بدون گروه آموزشی</h3>
+<div class="code"><pre><code>SELECT F.FacultyID, F.FacultyName
+FROM Faculties AS F
+LEFT JOIN Departments AS D
+  ON F.FacultyID = D.FacultyID
+WHERE D.DepartmentID IS NULL;</code></pre></div>
+<h3>تمرین ۹: دانشگاه، دانشکده و گروه (سه جدول)</h3>
+<div class="code"><pre><code>SELECT
+  U.UniversityName, F.FacultyName,
+  D.DepartmentName, D.HeadName
+FROM Universities AS U
+INNER JOIN Faculties AS F
+  ON U.UniversityID = F.UniversityID
+INNER JOIN Departments AS D
+  ON F.FacultyID = D.FacultyID
+ORDER BY U.UniversityName, F.FacultyName, D.DepartmentName;</code></pre></div>
+<h3>تمرین ۱۰: آزمایش کلید خارجی</h3>
+<div class="code"><pre><code>SELECT DepartmentID, DepartmentName, FacultyID
+FROM Departments;
+
+-- باید خطا بدهد: دانشکده‌ای با شناسه 999 وجود ندارد
+INSERT INTO Departments (DepartmentName, FacultyID)
+VALUES (N'گروه آموزشی آزمایشی', 999);</code></pre></div>
+<p>این خطا نشان می‌دهد کلید خارجی از ایجاد ارتباط نامعتبر بین جدول‌ها جلوگیری می‌کند.</p>
+</section>
+
+<!-- ===================== کار عملی ۵ ===================== -->
+<section class="lab" id="lab5">
+<span class="tag">کار عملی ۵</span>
+<h2>مدیریت رشته‌های تحصیلی و دانشجویان</h2>
+<p class="goal">ادامه پایگاه داده دانشگاه با دو جدول جدید Majors و Students. جدول‌های Universities، Faculties و Departments باید از قبل در UniversityFacultiesDB وجود داشته باشند.</p>
+<div class="rel">Universities → Faculties → Departments → Majors → Students</div>
+<p>هر رشته می‌تواند چند دانشجو داشته باشد و هر دانشجو به یک رشته وابسته است (یک‌به‌چند). آدرس دانشجو در صورت نیاز یک صفت در جدول Students است و موجودیت جدا نمی‌خواهد.</p>
+
+<h3>ایجاد جدول Majors</h3>
+<div class="code"><pre><code>USE UniversityFacultiesDB;
+GO
+CREATE TABLE Majors
+(
+  MajorID INT IDENTITY(1,1) PRIMARY KEY,
+  MajorName NVARCHAR(100) NOT NULL,
+  DegreeLevel NVARCHAR(50) NOT NULL,
+  DepartmentID INT NOT NULL,
+  CONSTRAINT FK_Majors_Departments
+    FOREIGN KEY (DepartmentID)
+    REFERENCES Departments(DepartmentID)
+);
+GO</code></pre></div>
+<ul class="notes">
+<li><code>DegreeLevel</code>: مقطع تحصیلی (کاردانی، کارشناسی، کارشناسی ارشد).</li>
+<li><code>DepartmentID</code>: کلید خارجی؛ هر رشته باید به یک گروه آموزشی موجود وابسته باشد.</li>
+</ul>
+
+<h3>ثبت رشته‌های نمونه</h3>
+<div class="code"><pre><code>SELECT DepartmentID, DepartmentName FROM Departments;
+
+INSERT INTO Majors (MajorName, DegreeLevel, DepartmentID)
+VALUES
+  (N'مهندسی نرم‌افزار', N'کارشناسی',      1),
+  (N'فناوری اطلاعات',   N'کارشناسی',      1),
+  (N'مهندسی کامپیوتر',  N'کارشناسی ارشد', 1),
+  (N'مهندسی برق',       N'کارشناسی',      2),
+  (N'مهندسی عمران',     N'کارشناسی',      3);
+GO</code></pre></div>
+<p>شناسه‌های گروه را با داده‌های واقعی جدول Departments تطبیق دهید.</p>
+
+<h3>ایجاد جدول Students</h3>
+<div class="code"><pre><code>CREATE TABLE Students
+(
+  StudentID INT IDENTITY(1,1) PRIMARY KEY,
+  FirstName NVARCHAR(50) NOT NULL,
+  LastName NVARCHAR(50) NOT NULL,
+  NationalCode CHAR(10) NOT NULL UNIQUE,
+  BirthDate DATE NULL,
+  EntryYear INT NOT NULL,
+  MajorID INT NOT NULL,
+  CONSTRAINT FK_Students_Majors
+    FOREIGN KEY (MajorID)
+    REFERENCES Majors(MajorID)
+);
+GO</code></pre></div>
+<p>کد ملی یکتاست (<code>UNIQUE</code>) و <code>EntryYear</code> سال ورود به دانشگاه است.</p>
+
+<h3>ثبت دانشجویان نمونه</h3>
+<div class="code"><pre><code>INSERT INTO Students
+  (FirstName, LastName, NationalCode, BirthDate, EntryYear, MajorID)
+VALUES
+  (N'علی',   N'احمدی',  '0012345678', '2004-05-12', 2024, 1),
+  (N'مریم',  N'رضایی',  '0023456789', '2003-08-20', 2023, 1),
+  (N'حسین',  N'کریمی',  '0034567890', '2004-01-15', 2024, 2),
+  (N'زهرا',  N'محمدی',  '0045678901', '2003-11-07', 2022, 3),
+  (N'رضا',   N'حیدری',  '0056789012', '2004-03-25', 2024, 4);
+GO</code></pre></div>
+
+<h3>تمرین ۱: نمایش همه رشته‌ها</h3>
+<div class="code"><pre><code>SELECT * FROM Majors;</code></pre></div>
+<h3>تمرین ۲: نمایش همه دانشجویان</h3>
+<div class="code"><pre><code>SELECT * FROM Students;</code></pre></div>
+<h3>تمرین ۳: دانشجویان همراه با نام رشته</h3>
+<div class="code"><pre><code>SELECT
+  S.StudentID, S.FirstName, S.LastName,
+  M.MajorName, M.DegreeLevel
+FROM Students AS S
+INNER JOIN Majors AS M
+  ON S.MajorID = M.MajorID;</code></pre></div>
+<h3>تمرین ۴: رشته‌های هر گروه آموزشی</h3>
+<div class="code"><pre><code>SELECT D.DepartmentName, M.MajorName, M.DegreeLevel
+FROM Departments AS D
+INNER JOIN Majors AS M
+  ON D.DepartmentID = M.DepartmentID;</code></pre></div>
+<h3>تمرین ۵: دانشجویان یک رشته مشخص</h3>
+<div class="code"><pre><code>SELECT FirstName, LastName, EntryYear
+FROM Students
+WHERE MajorID = 1;</code></pre></div>
+<h3>تمرین ۶: شمارش دانشجویان هر رشته</h3>
+<div class="code"><pre><code>SELECT
+  M.MajorID, M.MajorName,
+  COUNT(S.StudentID) AS StudentCount
+FROM Majors AS M
+LEFT JOIN Students AS S
+  ON M.MajorID = S.MajorID
+GROUP BY M.MajorID, M.MajorName;</code></pre></div>
+<h3>تمرین ۷: شمارش رشته‌های هر گروه آموزشی</h3>
+<div class="code"><pre><code>SELECT
+  D.DepartmentName,
+  COUNT(M.MajorID) AS MajorCount
+FROM Departments AS D
+LEFT JOIN Majors AS M ON D.DepartmentID = M.DepartmentID
+GROUP BY D.DepartmentName;</code></pre></div>
+<h3>تمرین ۸: افزودن رشته جدید</h3>
+<div class="code"><pre><code>INSERT INTO Majors (MajorName, DegreeLevel, DepartmentID)
+VALUES (N'مدیریت فناوری اطلاعات', N'کارشناسی', 1);</code></pre></div>
+<h3>تمرین ۹: افزودن دانشجوی جدید</h3>
+<div class="code"><pre><code>INSERT INTO Students
+  (FirstName, LastName, NationalCode, BirthDate, EntryYear, MajorID)
+VALUES
+  (N'فاطمه', N'صادقی', '0067890123', '2004-06-10', 2024, 1);</code></pre></div>
+<p>کد ملی نباید با کدهای موجود تکراری باشد.</p>
+<h3>تمرین ۱۰: تغییر رشته یک دانشجو</h3>
+<div class="code"><pre><code>UPDATE Students
+SET MajorID = 2
+WHERE StudentID = 1;</code></pre></div>
+<h3>تمرین ۱۱: گروه‌های آموزشی بدون رشته</h3>
+<div class="code"><pre><code>SELECT D.DepartmentID, D.DepartmentName
+FROM Departments AS D
+LEFT JOIN Majors AS M
+  ON D.DepartmentID = M.DepartmentID
+WHERE M.MajorID IS NULL;</code></pre></div>
+<h3>تمرین ۱۲: سلسله‌مراتب دانشگاه تا دانشجو</h3>
+<div class="code"><pre><code>SELECT
+  U.UniversityName, F.FacultyName, D.DepartmentName,
+  M.MajorName, S.FirstName, S.LastName
+FROM Universities AS U
+INNER JOIN Faculties AS F    ON U.UniversityID = F.UniversityID
+INNER JOIN Departments AS D  ON F.FacultyID = D.FacultyID
+INNER JOIN Majors AS M       ON D.DepartmentID = M.DepartmentID
+INNER JOIN Students AS S     ON M.MajorID = S.MajorID
+ORDER BY U.UniversityName, F.FacultyName, D.DepartmentName, M.MajorName;</code></pre></div>
+<p>به‌دلیل <code>INNER JOIN</code> فقط مسیرهایی نمایش داده می‌شوند که در همه جدول‌ها رکورد متناظر دارند.</p>
+<h3>تمرین ۱۳: آزمایش کلید خارجی</h3>
+<div class="code"><pre><code>-- باید خطا بدهد: رشته‌ای با شناسه 999 وجود ندارد
+INSERT INTO Students
+  (FirstName, LastName, NationalCode, BirthDate, EntryYear, MajorID)
+VALUES
+  (N'دانشجوی', N'آزمایشی', '0098765432', '2004-02-10', 2024, 999);</code></pre></div>
+</section>
+
+<!-- ===================== کار عملی ۶ ===================== -->
+<section class="lab" id="lab6">
+<span class="tag">کار عملی ۶</span>
+<h2>مدیریت درس‌ها و انتخاب واحد</h2>
+<p class="goal">ارتباط دانشجو و درس چندبه‌چند است: هر دانشجو چند درس می‌گیرد و هر درس را چند دانشجو انتخاب می‌کنند. برای پیاده‌سازی آن از جدول واسط StudentCourses استفاده می‌شود. هر درس هم به یک گروه آموزشی وابسته است.</p>
+<div class="rel">Students (1) ──&lt; StudentCourses &gt;── (1) Courses</div>
+
+<h3>ایجاد جدول Courses</h3>
+<div class="code"><pre><code>USE UniversityFacultiesDB;
+GO
+CREATE TABLE Courses
+(
+  CourseID INT IDENTITY(1,1) PRIMARY KEY,
+  CourseCode NVARCHAR(20) NOT NULL UNIQUE,
+  CourseName NVARCHAR(100) NOT NULL,
+  Units INT NOT NULL,
+  DepartmentID INT NOT NULL,
+  CONSTRAINT CK_Courses_Units
+    CHECK (Units BETWEEN 1 AND 6),
+  CONSTRAINT FK_Courses_Departments
+    FOREIGN KEY (DepartmentID)
+    REFERENCES Departments(DepartmentID)
+);
+GO</code></pre></div>
+<p><code>CHECK</code> تعداد واحد درس را بین ۱ تا ۶ محدود می‌کند و <code>CourseCode</code> باید یکتا باشد.</p>
+
+<h3>ثبت درس‌های نمونه</h3>
+<div class="code"><pre><code>SELECT DepartmentID, DepartmentName FROM Departments;
+
+INSERT INTO Courses (CourseCode, CourseName, Units, DepartmentID)
+VALUES
+  (N'10101', N'برنامه‌نویسی مقدماتی', 3, 1),
+  (N'10102', N'پایگاه داده',         3, 1),
+  (N'10103', N'ساختمان داده',        3, 1),
+  (N'10201', N'مدارهای الکتریکی',    3, 2),
+  (N'10301', N'ریاضی عمومی',         3, 3);
+GO</code></pre></div>
+
+<h3>ایجاد جدول واسط StudentCourses</h3>
+<div class="code"><pre><code>CREATE TABLE StudentCourses
+(
+  EnrollmentID INT IDENTITY(1,1) PRIMARY KEY,
+  StudentID INT NOT NULL,
+  CourseID INT NOT NULL,
+  AcademicYear INT NOT NULL,
+  Semester NVARCHAR(20) NOT NULL,
+  Grade DECIMAL(4,2) NULL,
+  CONSTRAINT FK_StudentCourses_Students
+    FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+  CONSTRAINT FK_StudentCourses_Courses
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
+  CONSTRAINT CK_StudentCourses_Grade
+    CHECK (Grade IS NULL OR Grade BETWEEN 0 AND 20),
+  CONSTRAINT UQ_StudentCourses
+    UNIQUE (StudentID, CourseID, AcademicYear, Semester)
+);
+GO</code></pre></div>
+<ul class="notes">
+<li>دو کلید خارجی (StudentID و CourseID) دانشجو و درس را به هم وصل می‌کنند.</li>
+<li><code>Grade</code> می‌تواند در ابتدا <code>NULL</code> باشد و فقط مقدار ۰ تا ۲۰ می‌پذیرد.</li>
+<li><code>UNIQUE</code> مانع ثبت تکراری یک درس برای یک دانشجو در یک نیم‌سال و سال تحصیلی می‌شود.</li>
+</ul>
+
+<h3>ثبت انتخاب واحد نمونه</h3>
+<div class="code"><pre><code>SELECT StudentID, FirstName, LastName FROM Students;
+SELECT CourseID, CourseCode, CourseName FROM Courses;
+
+INSERT INTO StudentCourses
+  (StudentID, CourseID, AcademicYear, Semester, Grade)
+VALUES
+  (1, 1, 2025, N'اول', NULL),
+  (1, 2, 2025, N'اول', NULL),
+  (1, 3, 2025, N'اول', NULL),
+  (2, 1, 2025, N'اول', NULL),
+  (2, 2, 2025, N'اول', NULL),
+  (3, 2, 2025, N'اول', NULL);
+GO</code></pre></div>
+
+<h3>تمرین ۱: نمایش همه درس‌ها</h3>
+<div class="code"><pre><code>SELECT * FROM Courses;</code></pre></div>
+<h3>تمرین ۲: نمایش همه انتخاب واحدها</h3>
+<div class="code"><pre><code>SELECT * FROM StudentCourses;</code></pre></div>
+<h3>تمرین ۳: دانشجویان همراه با درس‌های انتخابی</h3>
+<div class="code"><pre><code>SELECT
+  S.StudentID, S.FirstName, S.LastName,
+  C.CourseCode, C.CourseName, C.Units
+FROM Students AS S
+INNER JOIN StudentCourses AS SC ON S.StudentID = SC.StudentID
+INNER JOIN Courses AS C         ON SC.CourseID = C.CourseID;</code></pre></div>
+<h3>تمرین ۴: درس‌های هر گروه آموزشی</h3>
+<div class="code"><pre><code>SELECT D.DepartmentName, C.CourseCode, C.CourseName, C.Units
+FROM Departments AS D
+INNER JOIN Courses AS C
+  ON D.DepartmentID = C.DepartmentID;</code></pre></div>
+<h3>تمرین ۵: درس‌های یک دانشجوی مشخص</h3>
+<div class="code"><pre><code>SELECT
+  S.FirstName, S.LastName,
+  C.CourseName, C.Units,
+  SC.Semester, SC.AcademicYear
+FROM Students AS S
+INNER JOIN StudentCourses AS SC ON S.StudentID = SC.StudentID
+INNER JOIN Courses AS C         ON SC.CourseID = C.CourseID
+WHERE S.StudentID = 1;</code></pre></div>
+<h3>تمرین ۶: شمارش دانشجویان هر درس</h3>
+<div class="code"><pre><code>SELECT
+  C.CourseID, C.CourseName,
+  COUNT(SC.StudentID) AS StudentCount
+FROM Courses AS C
+LEFT JOIN StudentCourses AS SC
+  ON C.CourseID = SC.CourseID
+GROUP BY C.CourseID, C.CourseName;</code></pre></div>
+<h3>تمرین ۷: مجموع واحدهای هر دانشجو</h3>
+<div class="code"><pre><code>SELECT
+  S.StudentID, S.FirstName, S.LastName,
+  SUM(C.Units) AS TotalUnits
+FROM Students AS S
+INNER JOIN StudentCourses AS SC ON S.StudentID = SC.StudentID
+INNER JOIN Courses AS C         ON SC.CourseID = C.CourseID
+GROUP BY S.StudentID, S.FirstName, S.LastName;</code></pre></div>
+<h3>تمرین ۸: افزودن درس جدید</h3>
+<div class="code"><pre><code>INSERT INTO Courses (CourseCode, CourseName, Units, DepartmentID)
+VALUES (N'10401', N'هوش مصنوعی', 3, 1);</code></pre></div>
+<h3>تمرین ۹: افزودن انتخاب واحد جدید</h3>
+<div class="code"><pre><code>INSERT INTO StudentCourses
+  (StudentID, CourseID, AcademicYear, Semester, Grade)
+VALUES (1, 4, 2025, N'اول', NULL);</code></pre></div>
+<h3>تمرین ۱۰: ثبت نمره دانشجو</h3>
+<div class="code"><pre><code>UPDATE StudentCourses
+SET Grade = 18.50
+WHERE StudentID = 1
+  AND CourseID = 1;</code></pre></div>
+<h3>تمرین ۱۱: درس‌هایی که هیچ دانشجویی انتخاب نکرده</h3>
+<div class="code"><pre><code>SELECT C.CourseID, C.CourseCode, C.CourseName
+FROM Courses AS C
+LEFT JOIN StudentCourses AS SC
+  ON C.CourseID = SC.CourseID
+WHERE SC.EnrollmentID IS NULL;</code></pre></div>
+<h3>تمرین ۱۲: اطلاعات کامل دانشجو، درس و گروه</h3>
+<div class="code"><pre><code>SELECT
+  S.StudentID, S.FirstName, S.LastName,
+  C.CourseName, C.Units, D.DepartmentName,
+  SC.AcademicYear, SC.Semester, SC.Grade
+FROM Students AS S
+INNER JOIN StudentCourses AS SC ON S.StudentID = SC.StudentID
+INNER JOIN Courses AS C         ON SC.CourseID = C.CourseID
+INNER JOIN Departments AS D     ON C.DepartmentID = D.DepartmentID
+ORDER BY S.StudentID, C.CourseName;</code></pre></div>
+<h3>تمرین ۱۳: آزمایش کلید خارجی</h3>
+<div class="code"><pre><code>-- باید خطا بدهد: دانشجو و درسی با شناسه 999 وجود ندارد
+INSERT INTO StudentCourses
+  (StudentID, CourseID, AcademicYear, Semester, Grade)
+VALUES (999, 999, 2025, N'اول', NULL);</code></pre></div>
+<p class="warn">اگر جدول‌های Courses و StudentCourses را قبلاً ساخته‌اید، بخش ساخت جدول را دوباره اجرا نکنید.</p>
+</section>
+
+<footer>نام‌ها و داده‌های این صفحه نمونه آموزشی هستند.</footer>
+</main>
+</div>
+
+<script>
+document.documentElement.classList.add("js");
+/* هایلایت ساده کدهای SQL + دکمه کپی + مشخص‌کردن بخش فعال در منو */
+(function(){
+  var KW=/\b(CREATE|DATABASE|TABLE|USE|GO|INSERT|INTO|VALUES|SELECT|FROM|WHERE|UPDATE|SET|DELETE|INNER|LEFT|JOIN|ON|AS|GROUP|BY|ORDER|HAVING|ASC|AND|OR|IS|NOT|NULL|UNIQUE|PRIMARY|KEY|FOREIGN|REFERENCES|CONSTRAINT|CHECK|DEFAULT|IDENTITY|BETWEEN|LIKE|COUNT|SUM|INT|NVARCHAR|CHAR|DATE|BIT|DECIMAL)\b/g;
+  document.querySelectorAll('pre code').forEach(function(el){
+    var t=el.textContent, out=[], re=/(--[^\n]*)|(N?'[^']*')|(\b\d+(?:\.\d+)?\b)|([\s\S])/g, m, buf='';
+    function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+    function flush(){ if(buf){ out.push(esc(buf).replace(KW,'<span class="k">$1</span>')); buf=''; } }
+    while((m=re.exec(t))){
+      if(m[1]){flush();out.push('<span class="c">'+esc(m[1])+'</span>')}
+      else if(m[2]){flush();out.push('<span class="s">'+esc(m[2])+'</span>')}
+      else if(m[3]&&!/\w$/.test(buf)){flush();out.push('<span class="n">'+m[3]+'</span>')}
+      else buf+=m[0];
+    }
+    flush(); el.innerHTML=out.join('');
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='کپی';
+    b.onclick=function(){
+      var done=function(){b.textContent='کپی شد';setTimeout(function(){b.textContent='کپی'},1500)};
+      if(navigator.clipboard){navigator.clipboard.writeText(t).then(done)}else{done()}
+    };
+    el.parentNode.appendChild(b);
+  });
+  var rv=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');rv.unobserve(e.target)}})},{threshold:.05});
+  document.querySelectorAll('section.lab').forEach(function(s){rv.observe(s)});
+  var links=document.querySelectorAll('.side a');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){
+        links.forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id)});
+      }});
+    },{rootMargin:'-20% 0px -70% 0px'});
+    document.querySelectorAll('section.lab').forEach(function(s){io.observe(s)});
+  }
+})();
+</script>
+</body>
+</html>
